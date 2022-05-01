@@ -1,10 +1,3 @@
-# requires postgres to build....
-resource "null_resource" "psycopg2" {
-  provisioner "local-exec" {
-    command = "pip3 install --target ../../src/postgres-update/ aws-psycopg2"
-  }
-}
-
 module "postgres-update" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -17,14 +10,14 @@ module "postgres-update" {
   vpc_subnet_ids         = [data.aws_subnet.a-private.id, data.aws_subnet.b-private.id, data.aws_subnet.c-private.id]
   vpc_security_group_ids = [module.postgres_update_security_group.security_group_id]
   attach_network_policy = true
-  source_path = "../../src/postgres-update"
+  source_path = [ 
+  "../../src/postgres-update",
+  {
+    path = "../../src/postgres-update",
+    pip_requirements = "../../requirements.txt",
+  }
+]
   timeout = 6
-
-  depends_on = [null_resource.psycopg2]
-
-  # layers = [
-  #   data.aws_lambda_layer_version.psycopg2.arn
-  # ]
 
   environment_variables = {
     DB = replace(var.env, "-", "")
