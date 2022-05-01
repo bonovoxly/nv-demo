@@ -88,4 +88,12 @@ terraform init
 terraform apply
 ```
 
+- Terraform the route53 domain. Will require updating the parent domain and adding the NS servers from the output:
 
+```bash
+cd ./terraform/route53
+terraform init
+terraform apply
+```
+
+- 
