@@ -1,6 +1,10 @@
-
 resource "aws_s3_bucket" "_" {
   bucket = "nv-demo-storage"
+  tags = {
+    Terraform   = "true"
+    Environment = var.env
+    Github      = var.github
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "_" {

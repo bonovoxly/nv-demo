@@ -1,6 +1,6 @@
 **/.terraform
 **/terraform.tfstate
-**/provider.tf
 **/build
 **/builds
+**/*.zip
 

@@ -1,10 +1,3 @@
-# requires postgres to build....
-resource "null_resource" "psycopg2" {
-  provisioner "local-exec" {
-    command = "pip3 install --target ../../src/postgres-update/ aws-psycopg2"
-  }
-}
-
 module "postgres-update" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -13,18 +6,20 @@ module "postgres-update" {
   handler       = "postgres-update.lambda_handler"
   runtime       = "python3.6"
   publish       = true
-  maximum_retry_attempts = 0
+  maximum_retry_attempts = 6
   vpc_subnet_ids         = [data.aws_subnet.a-private.id, data.aws_subnet.b-private.id, data.aws_subnet.c-private.id]
-  vpc_security_group_ids = [module.postgres_init_security_group.security_group_id]
+  vpc_security_group_ids = [module.postgres_update_security_group.security_group_id]
   attach_network_policy = true
-  source_path = "../../src/postgres-update"
+  source_path = [ 
+  "../../src/postgres-update",
+  {
+    path = "../../src/postgres-update",
+    pip_requirements = "../../requirements.txt",
+  }
+]
   timeout = 6
 
-  depends_on = [null_resource.psycopg2]
-
-  # layers = [
-  #   data.aws_lambda_layer_version.psycopg2.arn
-  # ]
+  cloudwatch_logs_retention_in_days = 7
 
   environment_variables = {
     DB = replace(var.env, "-", "")
@@ -58,12 +53,12 @@ EOF
   }
 }
 
-module "postgres_init_security_group" {
+module "postgres_update_security_group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 4.0"
 
-  name        = "${var.env}-postgres-init"
-  description = "nv-demo postgres-init security group"
+  name        = "${var.env}-postgres-update"
+  description = "nv-demo postgres-update security group"
   vpc_id      = data.aws_vpc.vpc.id
 
   egress_cidr_blocks = ["0.0.0.0/0"]

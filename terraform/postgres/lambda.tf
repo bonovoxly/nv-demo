@@ -1,10 +1,3 @@
-# requires postgres to build....
-resource "null_resource" "config" {
-  provisioner "local-exec" {
-    command = "pip3 install --target ../../src/postgres-init/ aws-psycopg2"
-  }
-}
-
 module "postgres-init" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -17,13 +10,16 @@ module "postgres-init" {
   vpc_subnet_ids         = [data.aws_subnet.a-private.id, data.aws_subnet.b-private.id, data.aws_subnet.c-private.id]
   vpc_security_group_ids = [module.postgres_init_security_group.security_group_id]
   attach_network_policy = true
-  source_path = "../../src/postgres-init"
+  source_path = [ 
+  "../../src/postgres-init",
+  {
+    path = "../../src/postgres-init",
+    pip_requirements = "../../requirements.txt",
+  }
+]
   timeout = 6
-  depends_on = [null_resource.config]
 
-  # layers = [
-  #   module.psycopg2_local.lambda_layer_arn,
-  # ]
+  cloudwatch_logs_retention_in_days = 7
 
   environment_variables = {
     Serverless = "Terraform"
