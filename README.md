@@ -13,6 +13,8 @@ This is the code for the engineering challenge. This project deploys the followi
 - A frontend, including a Route53 entry, ACM, API Gateway, api Lambda, authorizer Lambda (`./terraform/frontend`).
 - A monitoring project, including AWS Canary (`./terraform/monitoring`).
 
+(Just started using [https://diagrams.mingrammer.com/](Diagrams), so the formatting of this network diagram isn't quite where I want it... But it will do.)
+
 ![./diagram/engineering-challenge.py](./diagram/engineering_challenge.png)
 
 The goal was to provide a fully functional demo, specifically where a file could be uploaded to S3 and a Postgres DB would be appropriately updated, complete with authentication. Please note, the functionality of `create_uploads.py` is in `./src/api/api.py`.
