@@ -13,6 +13,8 @@ This is the code for the engineering challenge. This project deploys the followi
 - A frontend, including a Route53 entry, ACM, API Gateway, api Lambda, authorizer Lambda (`./terraform/frontend`).
 - A monitoring project, including AWS Canary (`./terraform/monitoring`).
 
+![./diagram/engineering-challenge.py](./diagram/engineering_challenge.png)
+
 The goal was to provide a fully functional demo, specifically where a file could be uploaded to S3 and a Postgres DB would be appropriately updated, complete with authentication. Please note, the functionality of `create_uploads.py` is in `./src/api/api.py`.
 
 Some quick usage examples:
@@ -165,3 +167,5 @@ Things I remember and/or didn't get to due to time.
 - I didn't quite understand the caching request.
 - Monitoring could be expanded drastically.
 - I would have liked to have split up `api.py`. A little better organization would have been nice.
+- Just realized that my lambda-authorizer breaks my naming convention (example: api = `nv-demo-api-lambda`, authorizer = `nv-demo-lambda-authorizer`).
+- My secrets break naming convention. Doh.
