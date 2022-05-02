@@ -6,33 +6,30 @@ import json
 # note - install aws-psycopg2
 import psycopg2
 
+# env variables
 RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 
-def getCredentials():
+# get postgres credentials from the AWS secretsmanager
+def get_credentials():
     credential = {}
-    
     secret_name = "postgres"
     region_name = "us-east-1"
-    
     client = boto3.client(
       service_name='secretsmanager',
       region_name=region_name
     )
-    
     get_secret_value_response = client.get_secret_value(
       SecretId=secret_name
     )
-    
     secret = json.loads(get_secret_value_response['SecretString'])
-    
     credential['username'] = secret['username']
     credential['password'] = secret['password']
     credential['host'] = RDS_HOST
     credential['db'] = DB
-    
     return credential
 
+# create tables
 def create_tables():
     """ create tables in the PostgreSQL database"""
     commands = (
@@ -48,13 +45,12 @@ def create_tables():
     conn = None
     results = "NA"
     try:
-        credential = getCredentials()
+        credential = get_credentials()
         conn = psycopg2.connect(
             user=credential['username'],
             password=credential['password'],
             host=credential['host'],
             dbname=credential['db']
-
         )
         cur = conn.cursor()
         cur.execute("select * from information_schema.tables where table_name=%s", ('files',))

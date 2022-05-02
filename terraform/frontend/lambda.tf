@@ -25,6 +25,7 @@ module "api_lambda" {
     RDS_HOST = data.aws_db_instance.postgres.address
     FQDN = "${var.env}.${var.domain}"
     BUCKET = "${var.env}-storage"
+    CLIENT_API_KEY = "${var.env}-client-api-key"
   }
 
   attach_policy_json = true
@@ -40,7 +41,8 @@ module "api_lambda" {
               "secretsmanager:ListSecretVersionIds"
             ],
             "Resource": [
-              "${data.aws_secretsmanager_secret_version.postgres.arn}"
+              "${data.aws_secretsmanager_secret_version.postgres.arn}",
+              "${data.aws_secretsmanager_secret_version.client-api-key.arn}"
             ]
         },
         {

@@ -8,6 +8,6 @@ resource "aws_synthetics_canary" "_" {
   start_canary = true
 
   schedule {
-    expression = "rate(5 minutes)"
+    expression = "cron(0 12 * * ? *)"
   }
 }

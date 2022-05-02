@@ -27,7 +27,7 @@ aws lambda invoke --function-name nv-demo-postgres-init --cli-binary-format raw-
 - Got an example query established. now to see if i can authorize it. Using `curl` to hit the root endpoint will now return a list of files from Postgres. Awesome.
 - Ok got the api gateway authorization at least requesting auth from the authorizer... Now to make the authorizer... authorize.
 - Lambda authorizor for api gateway is slick. I like it.  I'm just querying AWS Secrets but... you could imagine a different user backend. very nice.
-- The lambda-authorizer complete. This is a mock user auth system, it's just pulling AWS secrets. 
+- The lambda-authorizer complete. This is a mock user auth system, it's just pulling AWS secrets.
 - Supporting uploads.
 - Got my first auth download:
 
@@ -97,3 +97,5 @@ here is mr foo.
 ```
 
 - OK! I think that's a wrap. Going to clean up code and fix up documentation.
+- Ugh, I just realized I misinterpreted the "client key to access remote services". I'll create a dedicated Terraform for that.
+- Updating the frontend to provide access to the client-api-key.

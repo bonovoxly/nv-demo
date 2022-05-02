@@ -1,4 +1,4 @@
-# instructions 
+# instructions
 
 You've been asked to design a serverless infrastructure to support a new application, which has
 the following characteristics and requirements:
