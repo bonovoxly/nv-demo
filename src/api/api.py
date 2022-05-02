@@ -8,12 +8,13 @@ import json
 # note - install aws-psycopg2
 import psycopg2
 
+# some global defaults and environment variables
 default_limit = 500
+expiration=os.getenv("expiration", default=30)
 RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 FQDN = os.getenv('FQDN')
 BUCKET = os.getenv("BUCKET")
-expiration=os.getenv("expiration", default=30)
 
 # sql commands
 # sql select
@@ -30,6 +31,7 @@ list = (
     SELECT * FROM files LIMIT %s;
 ''')
 
+# presigned URL handler
 def get_presigned_url(action, bucket, key):
     print(f"get_presigned_url {action} {bucket} {key}")
     conn = boto3.client('s3')
@@ -47,12 +49,12 @@ def get_presigned_url(action, bucket, key):
         try:
             response = conn.generate_presigned_post(bucket, key, ExpiresIn=expiration) 
             response = f"{response['url']}/{response['fields']['key']}?AWSAccessKeyId={response['fields']['AWSAccessKeyId']}&Signature={response['fields']['signature']}"
-            print(response)
         except (Exception) as error:
             print("Error...")
             print(error)
     return response
 
+# gets postgres credentials from the AWS secretsmanager
 def getCredentials():
     credential = {}
     secret_name = "postgres"
@@ -71,6 +73,7 @@ def getCredentials():
     credential['db'] = DB
     return credential
 
+# formats HTTP response
 def response_return(status, body):
     status = status
     myreturn = {}
@@ -79,6 +82,7 @@ def response_return(status, body):
     myreturn['body'] = body
     return myreturn
 
+# SQL query
 def sql_list(sql_command, tuple):
     conn = None
     results = "NA"
@@ -102,7 +106,6 @@ def sql_list(sql_command, tuple):
     finally:
         if conn is not None:
             conn.close()
-    print(results)
     return results
 
 # parses postgres results
@@ -123,9 +126,9 @@ def list_files():
     for each in results:
         parsed_list.append(parse_tuple(tuple(each)))
     myresults = response_return(200, parsed_list)
-    print(myresults)
     return myresults
 
+# downloads file (must be smaller than 6MB)
 def download_file(path):
     results = sql_list(select, (path,))
     if len(results) == 0:
@@ -139,9 +142,9 @@ def download_file(path):
         my_file = s3.get_object(Bucket=my_data['s3_bucket'], Key=my_data['prefix_path'])
         data = my_file['Body'].read().decode('utf-8')
         myresults = data
-    print(myresults)
     return myresults
 
+# downloads presigned URL (for large files)
 def download_presigned(path):
     path = path.split('/')[-1]
     results = sql_list(select, (path,))
@@ -151,13 +154,11 @@ def download_presigned(path):
         return response_return(500, "Multiple results found")
     else:
         my_data = parse_tuple(tuple(results[0]))
-        print(my_data)
         my_file = get_presigned_url('get_object', my_data['s3_bucket'], my_data['prefix_path'])
         myresults = response_return(200, {'url': my_file})
-    print(myresults)
     return myresults
 
-
+# uploads file (must be smaller than 6MB)
 def upload_file(path, content):
     if len(path.split('/'))!= 3:
         return response_return(400, "Bad Request - filename might have a slash.")
@@ -175,15 +176,14 @@ def upload_presigned(path):
     else:
         my_file = get_presigned_url('put_object', BUCKET, path)
         myresults = response_return(200, {'url': my_file})
-        print(myresults)
         return myresults
 
 # lambda_handler (converts the event to the path)
 def lambda_handler(event, context):
-    print(event)
+    # print(event)
     path = event['requestContext']['http']['path'][1:]
     method = event['requestContext']['http']['method']
-    print(path)
+    # print(path)
     # the default path will just call list
     if path.startswith('api/'):
 

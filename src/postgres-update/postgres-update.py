@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
+from re import I
 import boto3
 import os
 import json
 # note - install aws-psycopg2
 import psycopg2
 
+# env variables
 RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 
+# sql commands
 """ inserts sql """
 insert = (
 '''
@@ -22,30 +25,26 @@ delete = (
     DELETE FROM files WHERE filename = %s;
 ''')
 
+# get postgres credentials from the AWS secretsmanager
 def getCredentials():
     credential = {}
-    
     secret_name = "postgres"
     region_name = "us-east-1"
-    
     client = boto3.client(
       service_name='secretsmanager',
       region_name=region_name
     )
-    
     get_secret_value_response = client.get_secret_value(
       SecretId=secret_name
     )
-    
     secret = json.loads(get_secret_value_response['SecretString'])
-    
     credential['username'] = secret['username']
     credential['password'] = secret['password']
     credential['host'] = RDS_HOST
     credential['db'] = DB
-    
     return credential
 
+# get items from the event
 def get_items(event):
     filename = event['Records'][0]['s3']['object']['key'].split('/')[-1]
     prefix_path = event['Records'][0]['s3']['object']['key']
@@ -53,6 +52,7 @@ def get_items(event):
     date_added = event['Records'][0]['eventTime']
     return filename, prefix_path, s3_bucket, date_added
 
+# run sql commands
 def run_sql(**kwargs):
     type = kwargs['type']
     commands=kwargs['commands']
@@ -70,7 +70,6 @@ def run_sql(**kwargs):
             password=credential['password'],
             host=credential['host'],
             dbname=credential['db']
-
         )
         cur = conn.cursor()
         if type == 'insert':
@@ -91,6 +90,7 @@ def run_sql(**kwargs):
             conn.close()
     return results 
 
+# lambda handler
 def lambda_handler(event, context):
     print('event...')
     print(event)
