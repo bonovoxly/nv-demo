@@ -11,7 +11,7 @@ RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 
 # get postgres credentials from the AWS secretsmanager
-def getCredentials():
+def get_credentials():
     credential = {}
     secret_name = "postgres"
     region_name = "us-east-1"
@@ -45,7 +45,7 @@ def create_tables():
     conn = None
     results = "NA"
     try:
-        credential = getCredentials()
+        credential = get_credentials()
         conn = psycopg2.connect(
             user=credential['username'],
             password=credential['password'],

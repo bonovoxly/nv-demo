@@ -15,6 +15,7 @@ RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 FQDN = os.getenv('FQDN')
 BUCKET = os.getenv("BUCKET")
+CLIENT_API_KEY = os.getenv("CLIENT_API_KEY")
 
 # sql commands
 # sql select
@@ -54,8 +55,23 @@ def get_presigned_url(action, bucket, key):
             print(error)
     return response
 
+# get the client-api-key mock
+def get_client_api_key():
+    credential = {}
+    secret_name = CLIENT_API_KEY
+    region_name = "us-east-1"
+    client = boto3.client(
+      service_name='secretsmanager',
+      region_name=region_name
+    )
+    get_secret_value_response = client.get_secret_value(
+      SecretId=secret_name
+    )
+    client_api_key = get_secret_value_response['SecretString']
+    return client_api_key
+
 # gets postgres credentials from the AWS secretsmanager
-def getCredentials():
+def get_credentials():
     credential = {}
     secret_name = "postgres"
     region_name = "us-east-1"
@@ -88,7 +104,7 @@ def sql_list(sql_command, tuple):
     results = "NA"
     print("list_files")
     try:
-        credential = getCredentials()
+        credential = get_credentials()
         conn = psycopg2.connect(
             user=credential['username'],
             password=credential['password'],

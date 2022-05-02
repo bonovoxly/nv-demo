@@ -56,6 +56,10 @@ data "aws_secretsmanager_secret_version" "postgres" {
   secret_id = "postgres"
 }
 
+data "aws_secretsmanager_secret_version" "client-api-key" {
+  secret_id = "${var.env}-client-api-key"
+}
+
 data "aws_db_instance" "postgres" {
   db_instance_identifier = "${var.env}-db"
 }

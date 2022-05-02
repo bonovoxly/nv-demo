@@ -26,7 +26,7 @@ delete = (
 ''')
 
 # get postgres credentials from the AWS secretsmanager
-def getCredentials():
+def get_credentials():
     credential = {}
     secret_name = "postgres"
     region_name = "us-east-1"
@@ -63,7 +63,7 @@ def run_sql(**kwargs):
     conn = None
     results = "NA"
     try:
-        credential = getCredentials()
+        credential = get_credentials()
         print(credential)
         conn = psycopg2.connect(
             user=credential['username'],

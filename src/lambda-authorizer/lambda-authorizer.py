@@ -7,7 +7,7 @@ import boto3
 import json
 
 
-def getCredentials():
+def get_credentials():
     credential = {}
     secret_name = "client"
     region_name = "us-east-1"
@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         auth = event['headers']['authorization'].split(' ')[1]
         user = base64.b64decode(auth).decode('utf-8').split(':')[0]
         password = base64.b64decode(auth).decode('utf-8').split(':')[1]
-    credential = getCredentials()
+    credential = get_credentials()
     if user == credential['username'] and password == credential['password']:
         response = { "isAuthorized": True, "context": {} }
     else:
