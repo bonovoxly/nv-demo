@@ -19,6 +19,7 @@ module "lambda-authorizer" {
   ]
   timeout = 6
 
+  cloudwatch_logs_retention_in_days = 7
 
   environment_variables = {
     DB = replace(var.env, "-", "")

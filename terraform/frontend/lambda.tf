@@ -18,6 +18,8 @@ module "api_lambda" {
     }
   ]
 
+  cloudwatch_logs_retention_in_days = 7
+
   environment_variables = {
     DB = replace(var.env, "-", "")
     RDS_HOST = data.aws_db_instance.postgres.address

@@ -19,9 +19,7 @@ module "postgres-init" {
 ]
   timeout = 6
 
-  # layers = [
-  #   module.psycopg2_local.lambda_layer_arn,
-  # ]
+  cloudwatch_logs_retention_in_days = 7
 
   environment_variables = {
     Serverless = "Terraform"

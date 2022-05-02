@@ -1,4 +1,5 @@
-# VPC lookup
+data "aws_caller_identity" "current" {}
+
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"
@@ -48,18 +49,17 @@ data "aws_subnet" "c-db" {
   }
 }
 
-data "aws_secretsmanager_secret_version" "client" {
-  secret_id = "client"
-}
-
-data "aws_secretsmanager_secret_version" "postgres" {
-  secret_id = "postgres"
-}
-
-data "aws_db_instance" "postgres" {
-  db_instance_identifier = "${var.env}-db"
-}
-
-data "aws_route53_zone" "zone" {
-  name = var.domain
+data "archive_file" "_" {
+  type = "zip"
+  source {
+    content  = templatefile("../../src/canary/canary.tftpl",
+      { 
+        env = var.env
+        domain = var.domain 
+      }
+    )
+    filename = "python/canary.py" 
+  }
+  // canary resource will not detect if file content has changed. So include hash in filename.
+  output_path = "${path.root}/canary-${filemd5("../../src/canary/canary.tftpl")}.zip"
 }

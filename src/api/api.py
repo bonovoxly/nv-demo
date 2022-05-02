@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import base64
+from distutils.log import error
 import boto3
 import os
 import json
@@ -12,7 +13,7 @@ RDS_HOST = os.getenv('RDS_HOST')
 DB = os.getenv('DB').replace('-','')
 FQDN = os.getenv('FQDN')
 BUCKET = os.getenv("BUCKET")
-expiration=os.getenv("expiration", default=20)
+expiration=os.getenv("expiration", default=30)
 
 # sql commands
 # sql select
@@ -34,11 +35,22 @@ def get_presigned_url(action, bucket, key):
     conn = boto3.client('s3')
     if key.startswith("/"):
         key = key[1:]
-    try:
-        conn.head_object(Bucket=bucket, Key=key)
-        response = conn.generate_presigned_url(action, Params={'Bucket': bucket, 'Key': key}, ExpiresIn=expiration) 
-    except:
-        response = ""
+    key = key.split('/')[-1]
+    if action == 'get_object':
+        try:
+            conn.head_object(Bucket=bucket, Key=key)
+            response = conn.generate_presigned_url(action, Params={'Bucket': bucket, 'Key': key}, ExpiresIn=expiration) 
+        except (Exception) as error:
+            print("Error...")
+            print(error)
+    elif action == 'put_object':
+        try:
+            response = conn.generate_presigned_post(bucket, key, ExpiresIn=expiration) 
+            response = f"{response['url']}/{response['fields']['key']}?AWSAccessKeyId={response['fields']['AWSAccessKeyId']}&Signature={response['fields']['signature']}"
+            print(response)
+        except (Exception) as error:
+            print("Error...")
+            print(error)
     return response
 
 def getCredentials():
@@ -131,6 +143,7 @@ def download_file(path):
     return myresults
 
 def download_presigned(path):
+    path = path.split('/')[-1]
     results = sql_list(select, (path,))
     if len(results) == 0:
         return response_return(404, "No results found")
@@ -156,7 +169,7 @@ def upload_file(path, content):
     return response_return(200, "File uploaded")
 
 # for large files, we return a presigned url
-def presigned_upload(path):
+def upload_presigned(path):
     if len(path.split('/'))!= 3:
         return response_return(400, "Bad Request - filename might have a slash.")
     else:
@@ -180,11 +193,11 @@ def lambda_handler(event, context):
         elif path.startswith('api/upload/') and method == 'PUT':
             print("upload")
             myreturn = upload_file(path, event['body'])
-        elif path.startswith('api/upload_presigned/') and method == 'PUT':
-            print("presigned")
-            myreturn = presigned_upload(path)
-        elif path.startswith('api/download_presigned/') and method == 'GET':
-            print("presigned")
+        elif path.startswith('api/upload_presigned/'):
+            print("upload_presigned")
+            myreturn = upload_presigned(path)
+        elif path.startswith('api/download_presigned/'):
+            print("download_presigned")
             myreturn = download_presigned(path)
         else:
             print("404")

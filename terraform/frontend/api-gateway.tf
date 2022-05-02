@@ -81,6 +81,15 @@ module "api_gateway" {
       authorization_scopes = ""
       # authorizer_key          = "lambda"
     }
+    "GET /" = {
+      lambda_arn             = module.api_lambda.lambda_function_arn
+      payload_format_version = "2.0"
+      timeout_milliseconds   = 30000
+      # authorization_type     = "CUSTOM"
+      # authorizer_id = aws_apigatewayv2_authorizer._.id
+      # authorization_scopes = ""
+      # authorizer_key          = "lambda"
+    }
     "$default" = {
       lambda_arn = module.api_lambda.lambda_function_arn
       payload_format_version = "2.0"
